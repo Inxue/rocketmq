@@ -40,6 +40,7 @@ public class MappedFileQueue {
 
     protected final int mappedFileSize;
 
+    //对应存储的CommitLog个数
     protected final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>();
 
     private final AllocateMappedFileService allocateMappedFileService;
@@ -227,6 +228,7 @@ public class MappedFileQueue {
         MappedFile mappedFile = null;
 
         if (this.allocateMappedFileService != null) {
+            //创建MappedFile
             mappedFile = this.allocateMappedFileService.putRequestAndReturnMappedFile(nextFilePath,
                     nextNextFilePath, this.mappedFileSize);
         } else {
@@ -239,6 +241,7 @@ public class MappedFileQueue {
 
         if (mappedFile != null) {
             if (this.mappedFiles.isEmpty()) {
+                //队列的第一个commitLog文件
                 mappedFile.setFirstCreateInQueue(true);
             }
             this.mappedFiles.add(mappedFile);
@@ -256,6 +259,7 @@ public class MappedFileQueue {
 
         while (!this.mappedFiles.isEmpty()) {
             try {
+                //获取最新的一个映射文件
                 mappedFileLast = this.mappedFiles.get(this.mappedFiles.size() - 1);
                 break;
             } catch (IndexOutOfBoundsException e) {
@@ -441,7 +445,7 @@ public class MappedFileQueue {
         MappedFile mappedFile = this.findMappedFileByOffset(this.flushedWhere, this.flushedWhere == 0);
         if (mappedFile != null) {
             long tmpTimeStamp = mappedFile.getStoreTimestamp();
-            int offset = mappedFile.flush(flushLeastPages);
+            int offset = mappedFile.flush(flushLeastPages);//刷盘
             long where = mappedFile.getFileFromOffset() + offset;
             result = where == this.flushedWhere;
             this.flushedWhere = where;
